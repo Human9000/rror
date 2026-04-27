@@ -165,4 +165,4 @@ class Mirror:
         return str(dst_path)
 
 
-mirror = Mirror() if PROJ_ROOT is not None else None
+# mirror = Mirror() if PROJ_ROOT is not None else None
