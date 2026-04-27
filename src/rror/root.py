@@ -44,15 +44,16 @@ def _find_project_root(start_path):
 
 
 def _default_start_paths():
-    workspace = Path.cwd().resolve()  # 工作目录
-    print('workspace:', workspace)
-    yield workspace
 
     main_file = getattr(sys.modules.get("__main__"), "__file__", None)
     main_file_path = Path(main_file).resolve()
     print('main_file:', main_file_path)
     if main_file:
         yield main_file_path.parent
+        
+    workspace = Path.cwd().resolve()  # 工作目录
+    print('workspace:', workspace)
+    yield workspace
 
 
 def get_proj_root(start_path=None):

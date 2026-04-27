@@ -5,7 +5,7 @@ from pathlib import Path
 from .root import PROJ_ROOT
 
 
-CONFIG_FILENAME = ".projmirror"
+CONFIG_FILENAME = ".rror"
 DEFAULT_MIRROR_DIR = ".mirror"
 
 

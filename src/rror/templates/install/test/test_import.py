@@ -1,4 +1,4 @@
-from rror import mirror
+from rror import Mirror
 from __PACKAGE_NAME__ import __name__ as package_name
 
 

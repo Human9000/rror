@@ -261,6 +261,7 @@ src/rror/cli.py
 模板位于：
 
 ```text
+src/rror/templates/common/
 src/rror/templates/sample/
 src/rror/templates/install/
 ```

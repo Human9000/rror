@@ -1,5 +1,5 @@
 import pytest
-from rror import mirror
+from rror import Mirror
 from src.main import main
 
 

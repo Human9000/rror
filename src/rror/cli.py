@@ -80,8 +80,13 @@ def _canonical_layout(layout):
 
 
 def _copy_template(layout, project_dir):
-    template_path = Path(__file__).resolve().parent / "templates" / layout
-    shutil.copytree(template_path, project_dir)
+    templates_dir = Path(__file__).resolve().parent / "templates"
+    common_template_path = templates_dir / "common"
+    layout_template_path = templates_dir / layout
+
+    shutil.copytree(common_template_path, project_dir)
+    shutil.copytree(layout_template_path, project_dir, dirs_exist_ok=True)
+    (project_dir / ".mirror").mkdir(exist_ok=True)
 
 
 def _replace_placeholders(project_dir, projname, package_name):

@@ -31,5 +31,7 @@ include-package-data = true
 rror = [
     "templates/**/*",
     "templates/*/.gitignore",
+    "templates/*/.projmirror",
+    "templates/*/.mirror/.live",
     "templates/*/.rror",
 ]
