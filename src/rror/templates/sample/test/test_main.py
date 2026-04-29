@@ -11,6 +11,10 @@ class TestMain:
         assert "Hello from this project." in captured.out
 
 
-if __name__ == "__main__":
-
-    raise SystemExit(pytest.main([__file__]))
+if __name__ == "__main__": 
+    raise SystemExit(pytest.main(['-v',
+                                  __file__,
+                                  #  '--tb=short',
+                                  '--color=yes',
+                                  #  "-k test_data_loader",
+                                  ]))
