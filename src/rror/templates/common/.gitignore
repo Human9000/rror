@@ -1,4 +1,3 @@
-data/
 .mirror/
 __pycache__/
 *.py[cod]
