@@ -69,11 +69,11 @@ class Mirror:
         _write_config(self._config, mirror_path)
 
     @property
-    def local_root(self):
+    def local_mirror(self):
         return self._local
 
     @property
-    def mirror_root(self):
+    def remote_mirror(self):
         return self._remote
 
     @property
@@ -87,7 +87,7 @@ class Mirror:
         assert self._remote is not None , "未设置 remote"
 
         return self._copy(
-            src=self.mirror(mirror_path),
+            src=self.remote(mirror_path),
             dst=self.local(local_path),
             updata=updata,
         )
@@ -97,11 +97,11 @@ class Mirror:
             mirror_path = local_path
 
         if self._remote is None:
-            return self.mirror(mirror_path)
+            return self.remote(mirror_path)
 
         return self._copy(
             src=self.local(local_path),
-            dst=self.mirror(mirror_path),
+            dst=self.remote(mirror_path),
             updata=updata,
         )
 
@@ -129,7 +129,7 @@ class Mirror:
             updata=updata,
         )
 
-    def mirror(self, path): 
+    def remote(self, path): 
         return str(self._remote / path)
 
     def local(self, path):
@@ -140,6 +140,7 @@ class Mirror:
         dst_path = Path(dst)
         
 
+        logging.info("start copy:%s to %s", src_path, dst_path)
         if src_path.resolve() == dst_path.resolve() and not updata:
             return str(dst_path)
  
@@ -161,7 +162,7 @@ class Mirror:
         else:
             shutil.copyfile(src_path, dst_path)
             
-        logging.info("copy:%s to %s", src_path, dst_path)
+        logging.info("end copy:%s to %s", src_path, dst_path)
         return str(dst_path)
 
 
