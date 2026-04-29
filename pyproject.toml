@@ -12,10 +12,10 @@ license = {text = "MIT"}
 authors = [{name = "Author", email = "author@example.com"}]
 keywords = ["mirror", "sync", "file"]
 
-dependencies = []
+dependencies = ["pytest>=7.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0"]
+dev = []
 
 [project.scripts]
 rror = "rror.cli:main"
