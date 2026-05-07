@@ -23,10 +23,12 @@ def print_divider(text="", char="="):
 
 def is_root(path):
     path = Path(path)
-    return (path / "pyproject.toml").is_file() \
-        or (path / "src").is_dir() \
+    return (path / "src").is_dir() \
+        or (path / "test").is_dir() \
+        or (path / ".mirror").is_dir() \
         or (path / "pytest.ini").is_file() \
-        or (path / "test").is_dir()
+        or (path / "pyproject.toml").is_file() \
+        or (path / ".rror").is_file() 
 
 
 def _find_project_root(start_path):
@@ -45,7 +47,7 @@ def _find_project_root(start_path):
 
 def _default_start_paths():
 
-    main_file = getattr(sys.modules.get("__main__"), "__file__", None)
+    main_file = getattr(sys.modules.get("__main__"), "__file__", '')
     main_file_path = Path(main_file).resolve()
     print('main_file:', main_file_path)
     if main_file:

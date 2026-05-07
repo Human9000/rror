@@ -138,15 +138,13 @@ class Mirror:
     def _copy(self, src, dst, updata=False):
         src_path = Path(src)
         dst_path = Path(dst)
-        
-
-        logging.info("start copy:%s to %s", src_path, dst_path)
+         
+        logging.debug("start copy:%s to %s", src_path, dst_path)
         if src_path.resolve() == dst_path.resolve() and not updata:
             return str(dst_path)
  
         assert src_path.exists() or dst_path.exists() , f"src: {src_path} 和 dst: {dst_path}文件均不存在:"
             
-            # return str(dst_path)
         if not src_path.exists():
             return str(dst_path)
 
@@ -155,14 +153,12 @@ class Mirror:
 
         dst_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if src_path.is_dir():
-            # if dst_path.exists() and updata:
-            #     shutil.rmtree(dst_path)
+        if src_path.is_dir(): 
             shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
         else:
             shutil.copyfile(src_path, dst_path)
-            
-        logging.info("end copy:%s to %s", src_path, dst_path)
+
+        logging.debug("end copy:%s to %s", src_path, dst_path)
         return str(dst_path)
 
 
