@@ -13,41 +13,49 @@ def _read_config(config_path):
     try:
         return json.loads(config_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return {"mirror_path": ""}
+        return {}
 
 
-def _write_config(config_path, mirror_path):
-    data = {"mirror_path": str(mirror_path or "")}
+def _write_config(config_path, *, official_remote=None, private_remote=None):
+    data = {}
+    if official_remote is not None:
+        data["official_remote"] = str(official_remote)
+    if private_remote is not None:
+        data["private_remote"] = str(private_remote)
     config_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+def _resolve_remote(configured_path, config_key):
+    path = configured_path.get(config_key, "") or configured_path.get("mirror_path", "") or DEFAULT_MIRROR_DIR
+    return Path(path).expanduser().resolve()
 
 
 def init_mirror_config(proj_root):
     if proj_root is None:
-        return None, None
+        return None, None, None
 
     proj_root = Path(proj_root)
-    config_path = proj_root / CONFIG_FILENAME 
+    config_path = proj_root / CONFIG_FILENAME
     if config_path.exists():
-        configured_path = _read_config(config_path).get("mirror_path", "")
+        config_data = _read_config(config_path)
     else:
-        configured_path = DEFAULT_MIRROR_DIR
-        _write_config(config_path, configured_path) 
-    if not configured_path:
-        configured_path = DEFAULT_MIRROR_DIR
-        _write_config(config_path, configured_path)
+        config_data = {}
+        _write_config(config_path, official_remote=DEFAULT_MIRROR_DIR, private_remote=DEFAULT_MIRROR_DIR)
 
-    mirror_root = Path(configured_path).expanduser()
-    mirror_root = mirror_root.resolve()
-    mirror_root.mkdir(parents=True, exist_ok=True)
-    return config_path, mirror_root
+    official_root = _resolve_remote(config_data, "official_remote")
+    private_root = _resolve_remote(config_data, "private_remote")
+    private_root.mkdir(parents=True, exist_ok=True)
+
+    return config_path, official_root, private_root
 
 
 class Mirror:
-    _instance = None
-    _root = None
-    _local = None
-    _remote = None
-    _config= None
+    _instance = None          # 单例实例
+    _root = None              # 项目根目录
+    _local = None             # 本地镜像目录（始终 .mirror）
+    _official_remote = None   # 官方远程路径
+    _private_remote = None    # 私有远程路径（official 不存在时降级到此）
+    _config = None            # 配置文件路径
 
     def __new__(cls, ):
         if cls._instance is None:
@@ -59,57 +67,50 @@ class Mirror:
             return
         self._root = PROJ_ROOT
         self._local = Path(PROJ_ROOT) / DEFAULT_MIRROR_DIR
-        self._config, self._remote = init_mirror_config(proj_root=PROJ_ROOT)
-        
-
-    def _read_config(self):
-        return _read_config(self._config)
-
-    def _write_config(self, mirror_path):
-        _write_config(self._config, mirror_path)
-
-    @property
-    def local_mirror(self):
-        return self._local
-
-    @property
-    def remote_mirror(self):
-        return self._remote
-
+        self._config, self._official_remote, self._private_remote = init_mirror_config(proj_root=PROJ_ROOT)
+         
     @property
     def config_path(self):
         return self._config
 
-    def pull(self, local_path, mirror_path=None, updata=False): 
+    def _get_remote_base(self, private=False):
+        if private:
+            return self._private_remote
+        if self._official_remote is not None and self._official_remote.exists():
+            return self._official_remote
+        return self._private_remote
+ 
+
+    def pull(self, local_path, mirror_path=None, updata=False, private=False):
         if mirror_path is None:
             mirror_path = local_path
 
-        assert self._remote is not None , "未设置 remote"
+        assert self._official_remote is not None, "未设置 remote"
 
         return self._copy(
-            src=self.remote(mirror_path),
+            src=self.remote(mirror_path, private=private),
             dst=self.local(local_path),
             updata=updata,
         )
 
-    def push(self, local_path, mirror_path=None, updata=False):
+    def push(self, local_path, mirror_path=None, updata=False, private=False):
         if mirror_path is None:
             mirror_path = local_path
 
-        if self._remote is None:
-            return self.remote(mirror_path)
+        if self._official_remote is None and self._private_remote is None:
+            return self.remote(mirror_path, private=private)
 
         return self._copy(
             src=self.local(local_path),
-            dst=self.remote(mirror_path),
+            dst=self.remote(mirror_path, private=private),
             updata=updata,
         )
 
-    def pull_abs(self, local_path, mirror_path=None, updata=False):
+    def pull_abs(self, local_path, mirror_path=None, updata=False, private=False):
         if mirror_path is None:
             mirror_path = Path(str(local_path).replace(
                 str(self._local),
-                str(self._remote)
+                str(self._get_remote_base(private))
             ))
         return self._copy(
             src=mirror_path,
@@ -117,11 +118,11 @@ class Mirror:
             updata=updata,
         )
 
-    def push_abs(self, local_path, mirror_path=None, updata=False):
+    def push_abs(self, local_path, mirror_path=None, updata=False, private=False):
         if mirror_path is None:
             mirror_path = Path(str(local_path).replace(
                 str(self._local),
-                str(self._remote)
+                str(self._get_remote_base(private))
             ))
         return self._copy(
             src=local_path,
@@ -129,11 +130,17 @@ class Mirror:
             updata=updata,
         )
 
-    def remote(self, path): 
-        return str(self._remote / path)
+    def remote(self, path=None, private=False):
+        base = self._get_remote_base(private)
+        if path is None:
+            return str(base)
+        return str(base / path)
 
-    def local(self, path):
-        return str(self._local / path)
+    def local(self, path=None):
+        base =  self._local
+        if path is None:
+            return str(base)
+        return str(base / path)
 
     def _copy(self, src, dst, updata=False):
         src_path = Path(src)

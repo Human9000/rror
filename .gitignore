@@ -1,6 +1,8 @@
-# data/
-# .mirror/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 *.egg-info/
+
+/.claude/
+/.mirror/
+/.rror
