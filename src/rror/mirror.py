@@ -73,44 +73,44 @@ class Mirror:
     def config_path(self):
         return self._config
 
-    def _get_remote_base(self, private=False):
-        if private:
+    def _get_remote_base(self, official=False):
+        if official:
+            if self._official_remote is not None and self._official_remote.exists():
+                return self._official_remote
             return self._private_remote
-        if self._official_remote is not None and self._official_remote.exists():
-            return self._official_remote
         return self._private_remote
  
 
-    def pull(self, local_path, mirror_path=None, updata=False, private=False):
+    def pull(self, local_path, mirror_path=None, updata=False, official=False):
         if mirror_path is None:
             mirror_path = local_path
 
         assert self._official_remote is not None, "未设置 remote"
 
         return self._copy(
-            src=self.remote(mirror_path, private=private),
+            src=self.remote(mirror_path, official=official),
             dst=self.local(local_path),
             updata=updata,
         )
 
-    def push(self, local_path, mirror_path=None, updata=False, private=False):
+    def push(self, local_path, mirror_path=None, updata=False, official=False):
         if mirror_path is None:
             mirror_path = local_path
 
         if self._official_remote is None and self._private_remote is None:
-            return self.remote(mirror_path, private=private)
+            return self.remote(mirror_path, official=official)
 
         return self._copy(
             src=self.local(local_path),
-            dst=self.remote(mirror_path, private=private),
+            dst=self.remote(mirror_path, official=official),
             updata=updata,
         )
 
-    def pull_abs(self, local_path, mirror_path=None, updata=False, private=False):
+    def pull_abs(self, local_path, mirror_path=None, updata=False, official=False):
         if mirror_path is None:
             mirror_path = Path(str(local_path).replace(
                 str(self._local),
-                str(self._get_remote_base(private))
+                str(self._get_remote_base(official))
             ))
         return self._copy(
             src=mirror_path,
@@ -118,11 +118,11 @@ class Mirror:
             updata=updata,
         )
 
-    def push_abs(self, local_path, mirror_path=None, updata=False, private=False):
+    def push_abs(self, local_path, mirror_path=None, updata=False, official=False):
         if mirror_path is None:
             mirror_path = Path(str(local_path).replace(
                 str(self._local),
-                str(self._get_remote_base(private))
+                str(self._get_remote_base(official))
             ))
         return self._copy(
             src=local_path,
@@ -130,8 +130,8 @@ class Mirror:
             updata=updata,
         )
 
-    def remote(self, path=None, private=False):
-        base = self._get_remote_base(private)
+    def remote(self, path=None, official=False):
+        base = self._get_remote_base(official)
         if path is None:
             return str(base)
         return str(base / path)

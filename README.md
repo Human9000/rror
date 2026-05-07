@@ -33,13 +33,13 @@ from rror import Mirror
 
 m = Mirror()
 
-# 从官方镜像拉取（默认）
+# 从私有镜像拉取（默认）
 m.pull("src/module.py")
 
-# 从私有镜像拉取
-m.pull("data/private.db", private=True)
+# 从官方镜像拉取
+m.pull("data/official.db", official=True)
 
-# 推送到官方镜像并覆盖
+# 推送到私有镜像并覆盖
 m.push("config/settings.yaml", updata=True)
 
 # 使用绝对路径
@@ -67,12 +67,12 @@ m.push_abs("/local/file.txt", "/mirror/file.txt")
 }
 ```
 
-### `remote(path=None, private=False)`
+### `remote(path=None, official=False)`
 
 获取镜像路径。
 
 - `path`：子路径；为 `None` 时返回远程基础目录。
-- `private`：`False`（默认）返回官方路径，`True` 返回私有路径。
+- `official`：`False`（默认）返回私有路径，`True` 返回官方路径。
 
 ### `local(path=None)`
 
@@ -80,29 +80,29 @@ m.push_abs("/local/file.txt", "/mirror/file.txt")
 
 - `path`：子路径；为 `None` 时返回本地基础目录。
 
-### `pull(local_path, mirror_path=None, updata=False, private=False)`
+### `pull(local_path, mirror_path=None, updata=False, official=False)`
 
 从镜像目录复制到本地项目目录。
 
 - `local_path`：本地目标路径。
 - `mirror_path`：镜像源路径；不传时默认与 `local_path` 相同。
 - `updata`：目标已存在时是否覆盖，默认 `False`。
-- `private`：`True` 时从私有镜像拉取，默认 `False`（官方镜像）。
+- `official`：`True` 时从官方镜像拉取，默认 `False`（私有镜像）。
 
-### `push(local_path, mirror_path=None, updata=False, private=False)`
+### `push(local_path, mirror_path=None, updata=False, official=False)`
 
 从本地项目目录复制到镜像目录。
 
 - `local_path`：本地源路径。
 - `mirror_path`：镜像目标路径；不传时默认与 `local_path` 相同。
 - `updata`：目标已存在时是否覆盖，默认 `False`。
-- `private`：`True` 时推送到私有镜像，默认 `False`（官方镜像）。
+- `official`：`True` 时推送到官方镜像，默认 `False`（私有镜像）。
 
-### `pull_abs(local_path, mirror_path=None, updata=False, private=False)`
+### `pull_abs(local_path, mirror_path=None, updata=False, official=False)`
 
 使用绝对路径从镜像位置复制到本地位置。
 
-### `push_abs(local_path, mirror_path=None, updata=False, private=False)`
+### `push_abs(local_path, mirror_path=None, updata=False, official=False)`
 
 使用绝对路径从本地位置复制到镜像位置。
 
@@ -124,12 +124,12 @@ from rror import Mirror
 Mirror().pull("config", "config", updata=True)
 ```
 
-### 推送到私有镜像
+### 推送到官方镜像
 
 ```python
 from rror import Mirror
 
-Mirror().push("docs", "docs", private=True)
+Mirror().push("docs", "docs", official=True)
 ```
 
 ## `create` 命令
@@ -349,7 +349,7 @@ m = Mirror()
 
 - `private_remote` 在初始化时自动创建（必须存在）。
 - `official_remote` 可以不存在，不存在时自动降级到 `private_remote`。
-- `push()` 和 `pull()` 默认使用官方镜像，传 `private=True` 时使用私有镜像。
+- `push()` 和 `pull()` 默认使用私有镜像，传 `official=True` 时使用官方镜像。
 
 ## 日志
 
