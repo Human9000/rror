@@ -72,11 +72,11 @@ def _make_user_writable(project_dir):
 
 
 def _canonical_layout(layout):
-    if layout in {"sample", "simple"}:
-        return "sample"
+    if layout == "simple":
+        return "simple"
     if layout == "install":
         return "install"
-    raise ValueError("layout 必须是 install、sample 或 simple")
+    raise ValueError("layout 必须是 install 或 simple")
 
 
 def _copy_template(layout, project_dir):
@@ -172,7 +172,7 @@ def _format_tree(root):
     return "\n".join(lines)
 
 
-def create_project(projname, target_dir=None, layout="sample"):
+def create_project(projname, target_dir=None, layout="simple"):
     _validate_project_name(projname)
     layout = _canonical_layout(layout)
 
@@ -200,14 +200,14 @@ def _build_parser():
     create_parser.add_argument("projname", help="要创建的项目名")
     create_parser.add_argument(
         "--layout",
-        choices=("install", "sample", "simple"),
-        default="sample",
-        help="项目结构类型：sample/simple 为无需安装的源码结构，install 为可安装 src 包结构",
+        choices=("install", "simple"),
+        default="simple",
+        help="项目结构类型：simple 为无需安装的源码结构，install 为可安装 src 包结构",
     )
     create_parser.add_argument(
         "--install",
         action="store_true",
-        help="使用无需安装的 sample 结构，等同于 --layout sample",
+        help="生成可安装的 src 包结构，等同于 --layout install",
     )
 
     return parser

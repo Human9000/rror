@@ -29,117 +29,112 @@ pip install -e ".[dev]"
 ## 快速开始
 
 ```python
-from rror import mirror
+from rror import Mirror
 
-# 首次导入会自动设置项目根目录，并创建 Mirror 单例
+m = Mirror()
 
-# 从镜像目录拉取文件到本地项目：镜像 -> 本地
-mirror.pull("src/module.py", "src/module.py")
+# 从官方镜像拉取（默认）
+m.pull("src/module.py")
 
-# 从本地项目推送文件到镜像目录：本地 -> 镜像
-mirror.push("config/settings.yaml", "config/settings.yaml", updata=True)
+# 从私有镜像拉取
+m.pull("data/private.db", private=True)
+
+# 推送到官方镜像并覆盖
+m.push("config/settings.yaml", updata=True)
 
 # 使用绝对路径
-mirror.pull_abs("/local/file.txt", "/mirror/file.txt")
-mirror.push_abs("/local/file.txt", "/mirror/file.txt")
+m.pull_abs("/local/file.txt", "/mirror/file.txt")
+m.push_abs("/local/file.txt", "/mirror/file.txt")
 ```
 
 ## API 说明
 
-### `mirror`
+### `Mirror()`
 
-`mirror` 是导入时创建的全局 Mirror 单例对象：
+`Mirror` 类使用单例模式。第一次创建时会初始化配置和镜像目录；之后再次调用 `Mirror()` 都会返回同一个对象。
 
-```python
-from rror import mirror
-```
+配置文件路径固定为项目根目录下的 `.rror`，包含 `official_remote` 和 `private_remote` 两个镜像路径。
 
-首次 `import rror` 时会完成以下操作：
+- `private_remote` 所指向的目录在初始化时必须存在（自动创建）。
+- `official_remote` 可不存在，不存在时所有操作自动降级到 `private_remote`。
 
-- 自动识别项目根目录并加入 `sys.path`。
-- 在项目根目录下读取 `.projmirror` 配置文件。
-- 如果 `.projmirror` 不存在，则自动创建。
-- 如果 `.mirror/` 目录不存在，则自动创建。
-- 根据配置中的 `mirror_path` 设置远程镜像目录。
-
-默认 `.projmirror` 内容：
+默认 `.rror` 内容：
 
 ```json
 {
-  "mirror_path": ".mirror"
+  "official_remote": ".mirror",
+  "private_remote": ".mirror"
 }
 ```
 
-默认镜像目录是项目根目录下的 `.mirror/`。如果 `.projmirror` 不存在、`mirror_path` 为空，或 `.mirror/` 不存在，首次 `import rror` 会自动初始化这些内容。
+### `remote(path=None, private=False)`
 
-### `Mirror()`
+获取镜像路径。
 
-`Mirror` 类使用单例模式。第一次创建时会初始化配置和镜像目录；之后再次调用 `Mirror()` 都会返回同一个对象，不会重复初始化。
+- `path`：子路径；为 `None` 时返回远程基础目录。
+- `private`：`False`（默认）返回官方路径，`True` 返回私有路径。
 
-`Mirror()` 不接受 `mirror_path` 或 `config_path` 参数。配置文件路径固定为项目根目录下的 `.projmirror`，镜像目录固定从 `.projmirror` 中的 `mirror_path` 字段读取。
+### `local(path=None)`
 
-### `pull(local_path, mirror_path=None, updata=False)`
+获取本地镜像路径。
 
-从镜像目录复制到本地项目目录，路径基于项目根目录。
+- `path`：子路径；为 `None` 时返回本地基础目录。
 
-- `local_path`：本地项目中的目标路径。
-- `mirror_path`：镜像目录中的源路径；不传时默认与 `local_path` 相同。
-- `updata`：目标路径已存在时是否覆盖，默认值为 `False`。
+### `pull(local_path, mirror_path=None, updata=False, private=False)`
 
-### `push(local_path, mirror_path=None, updata=False)`
-
-从本地项目目录复制到镜像目录，路径基于项目根目录。
-
-- `local_path`：本地项目中的源路径。
-- `mirror_path`：镜像目录中的目标路径；不传时默认与 `local_path` 相同。
-- `updata`：目标路径已存在时是否覆盖，默认值为 `False`。
-
-### `pull_abs(local_path, mirror_path=None, updata=False)`
-
-使用绝对路径从镜像位置复制到本地位置。
+从镜像目录复制到本地项目目录。
 
 - `local_path`：本地目标路径。
 - `mirror_path`：镜像源路径；不传时默认与 `local_path` 相同。
-- `updata`：目标路径已存在时是否覆盖，默认值为 `False`。
+- `updata`：目标已存在时是否覆盖，默认 `False`。
+- `private`：`True` 时从私有镜像拉取，默认 `False`（官方镜像）。
 
-### `push_abs(local_path, mirror_path=None, updata=False)`
+### `push(local_path, mirror_path=None, updata=False, private=False)`
 
-使用绝对路径从本地位置复制到镜像位置。
+从本地项目目录复制到镜像目录。
 
 - `local_path`：本地源路径。
 - `mirror_path`：镜像目标路径；不传时默认与 `local_path` 相同。
-- `updata`：目标路径已存在时是否覆盖，默认值为 `False`。
+- `updata`：目标已存在时是否覆盖，默认 `False`。
+- `private`：`True` 时推送到私有镜像，默认 `False`（官方镜像）。
+
+### `pull_abs(local_path, mirror_path=None, updata=False, private=False)`
+
+使用绝对路径从镜像位置复制到本地位置。
+
+### `push_abs(local_path, mirror_path=None, updata=False, private=False)`
+
+使用绝对路径从本地位置复制到镜像位置。
 
 ## 使用示例
 
 ### 备份源码目录
 
 ```python
-from rror import mirror
+from rror import Mirror
 
-mirror.push("src", "src", updata=True)
+Mirror().push("src", "src", updata=True)
 ```
 
 ### 拉取共享配置
 
 ```python
-from rror import mirror
+from rror import Mirror
 
-mirror.pull("config", "config", updata=True)
+Mirror().pull("config", "config", updata=True)
 ```
 
-### 简单双向同步
+### 推送到私有镜像
 
 ```python
-from rror import mirror
+from rror import Mirror
 
-mirror.pull("docs", "docs")
-mirror.push("docs", "docs")
+Mirror().push("docs", "docs", private=True)
 ```
 
 ## `create` 命令
 
-`rror` 提供 `create` 命令，用于快速创建标准 Python 项目结构。默认生成可安装的 `src` 包布局：
+`rror` 提供 `create` 命令，快速创建标准 Python 项目结构。默认生成无需安装的 `simple` 源码布局：
 
 ```bash
 rror create [projname]
@@ -151,13 +146,13 @@ rror create [projname]
 rror create demo_project
 ```
 
-执行后会在当前目录下创建 `demo_project` 文件夹，并生成以下无需安装的 sample 源码结构：
+执行后会在当前目录下创建 `demo_project` 文件夹，并生成以下无需安装的 simple 源码结构：
 
 ```text
 demo_project/
 ├── README.md
 ├── .gitignore
-├── .projmirror
+├── .rror
 ├── pytest.ini
 ├── .mirror/
 ├── src/
@@ -167,36 +162,32 @@ demo_project/
     └── test_main.py
 ```
 
-也可以显式指定 sample 源码结构：
-
-```bash
-rror create demo_project --layout sample
-```
-
-`simple` 是兼容旧版本的别名，也会生成 sample 结构：
+也可以显式指定 `--layout`：
 
 ```bash
 rror create demo_project --layout simple
+rror create demo_project --layout install
 ```
 
-或者使用快捷参数：
+或者使用快捷参数 `--install`（等同于 `--layout install`）：
 
 ```bash
-rror create demo_project --no-install
+rror create demo_project --install
 ```
 
-sample 结构不会生成 `pyproject.toml`，`src` 下面直接放源码文件：
+`install` 结构额外生成 `pyproject.toml` 和 `src/<package>/` 包目录：
 
 ```text
 demo_project/
 ├── README.md
 ├── .gitignore
-├── .projmirror
+├── .rror
 ├── pytest.ini
 ├── .mirror/
+├── pyproject.toml
 ├── src/
-│   ├── __init__.py
-│   └── main.py
+│   └── demo_project/
+│       └── __init__.py
 └── test/
     └── test_main.py
 ```
@@ -205,15 +196,15 @@ demo_project/
 
 - 项目根目录名称使用用户传入的 `[projname]`。
 - 自动创建 `README.md`，标题使用项目名。
-- 自动创建 `.projmirror`，默认 `mirror_path` 为 `.mirror`。
+- 自动创建 `.rror`，默认 `official_remote` 和 `private_remote` 均为 `.mirror`。
 - 自动创建 `pytest.ini`，默认测试目录为 `test`，并把 `src` 加入 pytest 的导入路径。
-- 自动创建 `.gitignore`，其中会忽略 `data/` 和 `.mirror/` 目录。
-- 自动创建空的 `.mirror/` 目录，用作默认本地镜像目录。
+- 自动创建 `.gitignore`。
+- 自动创建空的 `.mirror/` 目录，用作默认镜像目录。
 - 自动创建 `test/` 目录，用于保存测试文件。
 - `install` 布局会自动创建 `pyproject.toml`，并生成 `src/[package_name]/__init__.py`。
 - `install` 布局下，如果 `[projname]` 中包含 `-`，包目录名会转换为合法 Python 包名，例如 `my-demo` 对应 `src/my_demo/`。
-- `sample` 布局不会创建 `pyproject.toml`，会生成 `src/__init__.py` 和 `src/main.py`。
-- `sample` 布局会生成 `test/test_main.py`，测试文件会先执行 `from rror import mirror`，再通过 pytest 测试类调用 `src/main.py` 的 `main()` 函数；也可以直接执行 `python test/test_main.py` 启动 pytest。
+- `simple` 布局不会创建 `pyproject.toml`，会生成 `src/__init__.py` 和 `src/main.py`。
+- `simple` 布局会生成 `test/test_main.py`，测试文件会先执行 `from rror import Mirror`，再通过 pytest 测试类调用 `src/main.py` 的 `main()` 函数；也可以直接执行 `python test/test_main.py` 启动 pytest。
 - `create` 基于 `src/rror/templates/` 下的模板复制项目，不在 CLI 中临时拼接项目文件内容。
 - 创建完成后会自动执行 `git init`，提交一次 `Initial commit`，创建 `master` 分支，并从 `master` 创建 `dev` 分支。
 - 创建完成后会在命令行打印新项目的文件树。
@@ -231,17 +222,15 @@ demo_project/
 ```bash
 rror create [projname]
 rror create [projname] --layout install
-rror create [projname] --layout sample
 rror create [projname] --layout simple
-rror create [projname] --no-install
+rror create [projname] --install
 ```
 
 参数说明：
 
 - `--layout install`：生成可安装项目结构。
-- `--layout sample`：生成无需安装的 sample 源码结构，默认值。
-- `--layout simple`：兼容旧版本，等同于 `--layout sample`。
-- `--no-install`：快捷参数，等同于 `--layout sample`。
+- `--layout simple`：生成无需安装的源码结构，默认值。
+- `--install`：快捷参数，等同于 `--layout install`。
 
 ### 实现位置
 
@@ -262,7 +251,7 @@ src/rror/cli.py
 
 ```text
 src/rror/templates/common/
-src/rror/templates/sample/
+src/rror/templates/simple/
 src/rror/templates/install/
 ```
 
@@ -274,7 +263,7 @@ src/rror/templates/install/
 def main():
     ...
 
-def create_project(projname: str, target_dir=None, layout="sample"):
+def create_project(projname: str, target_dir=None, layout="simple"):
     ...
 
 def normalize_package_name(projname: str) -> str:
@@ -292,7 +281,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "[projname]"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 readme = "README.md"
 requires-python = ">=3.8"
@@ -327,7 +316,7 @@ where = ["src"]
 这对测试文件尤其有用。例如测试文件先导入本库后，就可以在不手动修改 `PYTHONPATH` 的情况下继续导入项目内的其他模块：
 
 ```python
-from rror import mirror
+from rror import Mirror
 
 from your_project_module import some_function
 ```
@@ -341,21 +330,26 @@ from your_project_module import some_function
 
 ## Mirror 单例与配置
 
-Mirror 逻辑位于 `src/rror/mirror.py`。首次 `import rror` 会确保 `.projmirror` 和 `.mirror/` 存在。访问 `mirror` 时会创建全局单例：
+Mirror 逻辑位于 `src/rror/mirror.py`。首次创建 `Mirror()` 实例时会自动读取或创建 `.rror` 配置文件，并确保私有镜像目录存在。
 
 ```python
-from rror import mirror
+from rror import Mirror
+
+m = Mirror()
 ```
 
-配置文件固定为项目根目录下的 `.projmirror`。如果文件不存在，首次启动会自动创建：
+配置文件固定为项目根目录下的 `.rror`：
 
 ```json
 {
-  "mirror_path": ".mirror"
+  "official_remote": ".mirror",
+  "private_remote": ".mirror"
 }
 ```
 
-默认镜像目录是项目根目录下的 `.mirror/`。如果配置文件不存在、`mirror_path` 为空，或 `.mirror/` 不存在，首次导入会自动创建并写入默认配置。`push()` 和 `pull()` 会在本地项目目录和该镜像目录之间同步。
+- `private_remote` 在初始化时自动创建（必须存在）。
+- `official_remote` 可以不存在，不存在时自动降级到 `private_remote`。
+- `push()` 和 `pull()` 默认使用官方镜像，传 `private=True` 时使用私有镜像。
 
 ## 日志
 
