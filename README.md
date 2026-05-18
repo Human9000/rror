@@ -355,6 +355,19 @@ m = Mirror()
 
 复制操作会通过 Python 标准库 `logging` 记录日志，日志内容包括源路径和目标路径。可以在调用方自行配置日志输出格式、日志级别和日志文件。
 
+## 更新日志
+
+### v0.2.1
+
+- `get_proj_root()` 设置 `PROJ_ROOT` 时，额外将 `PROJ_ROOT/src` 加入 `sys.path`，方便 `src` 布局下的项目直接导入包模块。
+
+### v0.2.0
+
+- `Mirror` 新增 `official` 参数，支持 `official_remote` / `private_remote` 双镜像源。
+- `create` 命令新增 `--layout` 参数，支持 `simple`（默认）和 `install` 两种项目结构。
+- `create` 项目模板重构，基于 `templates/` 目录复制，不再在 CLI 中拼接文件内容。
+- 项目重命名：`sample` 布局更名为 `simple`。
+
 ## 许可证
 
 MIT License
