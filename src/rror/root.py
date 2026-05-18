@@ -74,6 +74,7 @@ def get_proj_root(start_path=None):
             logging.info(f"Set PROJ_ROOT:`{root}`")
             if str(root) not in sys.path:
                 sys.path.insert(0, str(root))
+                sys.path.insert(0, str(root/'src'))
             return PROJ_ROOT
     print(flush=True)
     raise RuntimeError("未找到项目根目录，请确保在项目根目录或其子目录下运行脚本。")
