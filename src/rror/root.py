@@ -24,7 +24,7 @@ def print_divider(text="", char="="):
 def is_root(path):
     path = Path(path)
     return (path / "src").is_dir() \
-        or (path / "test").is_dir() \
+        or (path / "tests").is_dir() \
         or (path / ".mirror").is_dir() \
         or (path / "pytest.ini").is_file() \
         or (path / "pyproject.toml").is_file() \
